@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodbank - Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h2>🏦 KODBANK</h2>
+      </div>
+      <div class="nav-menu">
+        <span class="welcome-text" id="welcomeText">Welcome!</span>
+        <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="dashboard-content">
+      <div class="dashboard-card">
+        <h2>Account Dashboard</h2>
+        <p class="subtitle">Welcome to your Kodbank account</p>
+        
+        <!-- Balance Section -->
+        <div class="balance-section">
+          <button class="btn btn-check-balance" id="checkBalanceBtn">
+            💰 Check Your Balance
+          </button>
+        </div>
+        
+        <!-- Balance Display -->
+        <div id="balanceDisplay" class="balance-display" style="display: none;">
+          <div class="balance-card">
+            <p class="balance-label">Your Current Balance</p>
+            <p class="balance-amount" id="balanceAmount">₹0.00</p>
+            <p class="balance-message" id="balanceMessage"></p>
+          </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message"></div>
+        
+        <!-- Loading State -->
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+          <div class="spinner"></div>
+          <p>Fetching your balance...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confetti Container -->
+  <div id="confettiContainer"></div>
+  
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
