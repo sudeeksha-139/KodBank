@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     // Find user
     const [users] = await connection.execute(
-      'SELECT uid, name, email, password, balance FROM KodUser WHERE email = ?',
+      'SELECT uid, username, email, password, balance FROM KodUser WHERE email = ?',
       [email]
     );
 
@@ -62,15 +62,16 @@ export default async function handler(req, res) {
 
     // Generate JWT token
     const token = jwt.sign(
-      { uid: user.uid, email: user.email, name: user.name },
+      { uid: user.uid, email: user.email, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     // Store token in database
+    const expiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
     await connection.execute(
-      'INSERT INTO UserToken (uid, token, created_at) VALUES (?, ?, NOW())',
-      [user.uid, token]
+      'INSERT INTO UserToken (token, uid, expiry) VALUES (?, ?, ?)',
+      [token, user.uid, expiryTime]
     );
 
     // Set cookie
@@ -84,7 +85,7 @@ export default async function handler(req, res) {
       token,
       user: {
         uid: user.uid,
-        name: user.name,
+        username: user.username,
         email: user.email,
         balance: user.balance
       }

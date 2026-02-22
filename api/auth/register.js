@@ -14,47 +14,6 @@ const pool = mysql.createPool({
   ssl: true
 });
 
-// Initialize database tables
-async function initializeDatabase() {
-  try {
-    const connection = await pool.getConnection();
-    
-    // Create KodUser table
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS KodUser (
-        uid INT PRIMARY KEY AUTO_INCREMENT,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        balance DECIMAL(15, 2) DEFAULT 100000,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Create UserToken table
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS UserToken (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        uid INT NOT NULL,
-        token LONGTEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (uid) REFERENCES KodUser(uid)
-      )
-    `);
-    
-    await connection.end();
-  } catch (error) {
-    console.error('Database initialization error:', error);
-  }
-}
-
-// Initialize on first call
-let dbInitialized = false;
-if (!dbInitialized) {
-  initializeDatabase();
-  dbInitialized = true;
-}
-
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -71,10 +30,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email, password, name } = req.body;
+    const { email, password, username, phone } = req.body;
 
     // Validate input
-    if (!email || !password || !name) {
+    if (!email || !password || !username) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
@@ -82,8 +41,8 @@ export default async function handler(req, res) {
 
     // Check if user already exists
     const [existing] = await connection.execute(
-      'SELECT uid FROM KodUser WHERE email = ?',
-      [email]
+      'SELECT uid FROM KodUser WHERE email = ? OR username = ?',
+      [email, username]
     );
 
     if (existing.length > 0) {
@@ -96,8 +55,8 @@ export default async function handler(req, res) {
 
     // Insert new user
     const [result] = await connection.execute(
-      'INSERT INTO KodUser (email, password, name, balance) VALUES (?, ?, ?, ?)',
-      [email, hashedPassword, name, 100000]
+      'INSERT INTO KodUser (username, email, password, phone, balance, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [username, email, hashedPassword, phone || '', 100000, 'Customer']
     );
 
     await connection.end();

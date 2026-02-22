@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
     // Get user profile
     const [users] = await connection.execute(
-      'SELECT uid, name, email, balance FROM KodUser WHERE uid = ?',
+      'SELECT uid, username, email, balance FROM KodUser WHERE uid = ?',
       [decoded.uid]
     );
 
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       success: true,
       user: {
         uid: user.uid,
-        name: user.name,
+        username: user.username,
         email: user.email,
         balance: user.balance
       }
