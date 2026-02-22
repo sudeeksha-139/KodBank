@@ -31,18 +31,20 @@ module.exports = async (req, res) => {
 
   let connection;
   try {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
 
     // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Missing email or password' });
+    if (!(username || email) || !password) {
+      return res.status(400).json({ success: false, message: 'Missing username/email or password' });
     }
+
+    const identifier = username || email;
 
     connection = await pool.getConnection();
 
     const [users] = await connection.execute(
-      'SELECT uid, username, password, role FROM KodUser WHERE email = ?',
-      [email]
+      'SELECT uid, username, email, password, role FROM KodUser WHERE email = ? OR username = ?',
+      [identifier, identifier]
     );
 
     if (users.length === 0) {
@@ -68,7 +70,9 @@ module.exports = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: { uid: user.uid, username: user.username, role: user.role }
+      username: user.username, // Added for frontend localStorage
+      uid: user.uid,
+      role: user.role
     });
   } catch (error) {
     console.error('Login error:', error);
