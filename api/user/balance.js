@@ -10,7 +10,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 1,
   queueLimit: 0,
-  ssl: true
+  ssl: { rejectUnauthorized: false }
 });
 
 module.exports = async (req, res) => {
@@ -28,24 +28,23 @@ module.exports = async (req, res) => {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
+  let connection;
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies.token;
+    const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const connection = await pool.getConnection();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    connection = await pool.getConnection();
 
     // Get user balance
     const [users] = await connection.execute(
       'SELECT balance FROM KodUser WHERE uid = ?',
       [decoded.uid]
     );
-
-    connection.release();
 
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -64,5 +63,7 @@ module.exports = async (req, res) => {
     }
     console.error('Balance error:', error);
     return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  } finally {
+    if (connection) connection.release();
   }
 };

@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 1,
   queueLimit: 0,
-  ssl: true
+  ssl: { rejectUnauthorized: false }
 });
 
 module.exports = async (req, res) => {
@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
+  let connection;
   try {
     const { email, password, username, phone } = req.body;
 
@@ -37,7 +38,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
 
     // Check if user already exists
     const [existing] = await connection.execute(
@@ -46,7 +47,6 @@ module.exports = async (req, res) => {
     );
 
     if (existing.length > 0) {
-      connection.release();
       return res.status(409).json({ success: false, message: 'User already exists' });
     }
 
@@ -59,8 +59,6 @@ module.exports = async (req, res) => {
       [username, email, hashedPassword, phone || '', 100000, 'Customer']
     );
 
-    connection.release();
-
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -72,5 +70,7 @@ module.exports = async (req, res) => {
       success: false,
       message: error.message || 'Server error during registration'
     });
+  } finally {
+    if (connection) connection.release();
   }
 };
