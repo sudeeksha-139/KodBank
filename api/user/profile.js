@@ -1,5 +1,5 @@
-import mysql from 'mysql2/promise';
-import jwt from 'jsonwebtoken';
+const mysql = require('mysql2/promise');
+const jwt = require('jsonwebtoken');
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -13,7 +13,7 @@ const pool = mysql.createPool({
   ssl: true
 });
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       [decoded.uid]
     );
 
-    await connection.end();
+    connection.release();
 
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -70,6 +70,6 @@ export default async function handler(req, res) {
       return res.status(401).json({ success: false, message: 'Invalid token' });
     }
     console.error('Profile error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
-}
+};
