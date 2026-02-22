@@ -2,6 +2,15 @@ import mysql from 'mysql2/promise';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+console.log('Environment check:', {
+  DB_HOST: process.env.DB_HOST ? '✓' : '✗',
+  DB_PORT: process.env.DB_PORT ? '✓' : '✗',
+  DB_USER: process.env.DB_USER ? '✓' : '✗',
+  DB_PASSWORD: process.env.DB_PASSWORD ? '✓' : '✗',
+  DB_NAME: process.env.DB_NAME ? '✓' : '✗',
+  JWT_SECRET: process.env.JWT_SECRET ? '✓' : '✗'
+});
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT),
@@ -32,12 +41,16 @@ export default async function handler(req, res) {
   try {
     const { email, password, username, phone } = req.body;
 
+    console.log('Register attempt:', { email, username, phone });
+
     // Validate input
     if (!email || !password || !username) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
+    console.log('Attempting database connection...');
     const connection = await pool.getConnection();
+    console.log('Database connected successfully');
 
     // Check if user already exists
     const [existing] = await connection.execute(
@@ -67,7 +80,11 @@ export default async function handler(req, res) {
       uid: result.insertId
     });
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ success: false, message: 'Server error during registration' });
+    console.error('Register error:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error: ' + error.message 
+    });
   }
 }
