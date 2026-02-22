@@ -3,15 +3,14 @@ import jwt from 'jsonwebtoken';
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+  port: parseInt(process.env.DB_PORT),
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 1,
   queueLimit: 0,
-  enableSSL: true,
-  ssl: 'Amazon RDS'
+  ssl: true
 });
 
 export default async function handler(req, res) {

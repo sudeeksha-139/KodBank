@@ -4,16 +4,56 @@ import jwt from 'jsonwebtoken';
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+  port: parseInt(process.env.DB_PORT),
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 1,
   queueLimit: 0,
-  enableSSL: true,
-  ssl: 'Amazon RDS'
+  ssl: true
 });
+
+// Initialize database tables
+async function initializeDatabase() {
+  try {
+    const connection = await pool.getConnection();
+    
+    // Create KodUser table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS KodUser (
+        uid INT PRIMARY KEY AUTO_INCREMENT,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        balance DECIMAL(15, 2) DEFAULT 100000,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create UserToken table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS UserToken (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        uid INT NOT NULL,
+        token LONGTEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (uid) REFERENCES KodUser(uid)
+      )
+    `);
+    
+    await connection.end();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+}
+
+// Initialize on first call
+let dbInitialized = false;
+if (!dbInitialized) {
+  initializeDatabase();
+  dbInitialized = true;
+}
 
 export default async function handler(req, res) {
   // Enable CORS
