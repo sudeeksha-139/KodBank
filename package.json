@@ -1,0 +1,16 @@
+{
+  "name": "kodbank",
+  "version": "1.0.0",
+  "description": "Full-stack banking application with JWT authentication",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend",
+    "dev": "concurrently \"npm start\" \"npm start --prefix backend\"",
+    "start": "cd frontend && python -m http.server 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}

@@ -1,5 +1,5 @@
 // Authentication JavaScript
-const API_URL = 'http://localhost:5001/api';
+const API_URL = '/api';
 
 // Handle Registration Form
 const registerForm = document.getElementById('registerForm');

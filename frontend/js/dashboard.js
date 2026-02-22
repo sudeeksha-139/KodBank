@@ -1,5 +1,5 @@
 // Dashboard JavaScript
-const API_URL = 'http://localhost:5001/api';
+const API_URL = '/api';
 
 // DOM Elements
 const checkBalanceBtn = document.getElementById('checkBalanceBtn');
